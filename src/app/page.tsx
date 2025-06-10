@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import {Plus, ArrowRight, Book, Zap, Droplets, CheckCircle2, Circle, LucideIcon, Heart, Edit3} from "lucide-react"
 import {useHabit} from "@/hooks/use-habit";
 import {useRouter}  from "next/navigation";
-import {getHabit, getHabits} from "@/lib/habits";
+import {addRecord, getHabit, getHabits} from "@/lib/habits";
 import {Habit} from "@/lib/types";
 
 const weeklyData = [
@@ -42,11 +42,10 @@ export default function HomePage() {
   const icons = getIcons()
   const router = useRouter()
 
-
   const toggleHabit = (id: number) => {
     setHabits(habits.map((habit) => (habit.id === id ? {...habit, completed: !habit.completed} : habit)))
+    void addRecord(id)
   }
-
 
   useEffect(() => {
     void getHabits().then(habits => {setHabits(habits)})
@@ -59,12 +58,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen pb-20">
       <motion.div
         initial={{opacity: 0, y: 20}}
         animate={{opacity: 1, y: 0}}
         transition={{duration: 0.5}}
-        className="max-w-md mx-auto bg-white min-h-screen"
+        className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 pt-12">
@@ -72,7 +71,7 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-gray-900">My Habits</h1>
             <p className="text-gray-500 text-sm">Track your daily progress</p>
           </div>
-          <Avatar className="w-10 h-10">
+          <Avatar className="w-10 h-10 shadow-md">
             <AvatarImage src="/placeholder.svg"/>
             <AvatarFallback className="bg-blue-500 text-white">U</AvatarFallback>
           </Avatar>
@@ -85,13 +84,13 @@ export default function HomePage() {
           transition={{delay: 0.1, duration: 0.5}}
           className="mx-6 mb-6"
         >
-          <Card>
-            <CardContent className="p-6">
+          <Card className="border-white bg-white shadow-md rounded-2xl">
+            <CardContent className="px-6 cursor-pointer">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Weekly Progress</h2>
-                <span className="text-2xl font-bold text-blue-600">75%</span>
+                <span className="text-gray-500">75%</span>
               </div>
-              <div className="flex items-end justify-between gap-2 h-24">
+              <div className="flex items-end justify-between gap-3 h-28">
                 {weeklyData.map((day, index) => (
                   <motion.div
                     key={index}
@@ -102,7 +101,7 @@ export default function HomePage() {
                   >
                     <div
                       className={`w-full rounded-full ${
-                        day.completed ? "bg-blue-500" : "bg-blue-200"
+                        day.completed ? "bg-gradient-to-b from-blue-500 to-blue-400" : "bg-blue-300"
                       } transition-colors duration-300`}
                       style={{height: `${day.progress}%`}}
                     />
@@ -127,20 +126,19 @@ export default function HomePage() {
                   animate={{opacity: 1, x: 0}}
                   transition={{delay: 0.3 + index * 0.1, duration: 0.5}}
                 >
-                  <Card className="overflow-hidden">
+                  <Card className="overflow-hidden border-white bg-white shadow-md rounded-2xl">
                     <CardContent className="p-0">
-                      <div className="flex items-center p-4" onClick={() => {
-                        onSelectHabit(habit.id)
-                      }}>
-                        <div className={`w-12 h-12 rounded-xl ${habit.color} flex items-center justify-center mr-4`}>
+                      <div className="flex items-center px-4">
+                        <div className={`w-12 h-12 rounded-4xl ${habit.color} flex items-center justify-center mr-4 cursor-pointer`} onClick={() => {onSelectHabit(habit.id)}}>
                           <Icon className="w-6 h-6 text-white"/>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1" >
                           <div>
                             <h3 className="font-semibold text-gray-900">{habit.name}</h3>
                             <p className="text-sm text-gray-500">{habit.goal} • {habit.reminder}</p>
                           </div>
                         </div>
+
                         <motion.button
                           whileScale={{scale: 0.95}}
                           whileTap={{scale: 0.9}}
@@ -148,9 +146,9 @@ export default function HomePage() {
                           className="ml-4"
                         >
                           {habit.completed ? (
-                            <CheckCircle2 className="w-8 h-8 text-green-500"/>
+                            <CheckCircle2 className="w-7 h-7 text-green-500"/>
                           ) : (
-                            <Circle className="w-8 h-8 text-gray-300"/>
+                            <Circle className="w-7 h-7 text-gray-300"/>
                           )}
                         </motion.button>
                       </div>
@@ -170,8 +168,8 @@ export default function HomePage() {
           className="fixed bottom-8 right-8"
         >
           <Link href="/add-habit">
-            <Button size="lg" className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg">
-              <Plus className="w-6 h-6"/>
+            <Button size="lg" className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md">
+              <Plus className="w-8 h-8 text-white"/>
             </Button>
           </Link>
         </motion.div>

@@ -9,3 +9,9 @@ export interface Habit {
   color: string,
   completed?: boolean
 }
+
+export interface Record {
+  id: number,
+  habit_id: number,
+  create_at: string
+}
