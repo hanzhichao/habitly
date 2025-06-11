@@ -79,7 +79,7 @@ export default function HabitDetailPage() {
           initial={{opacity: 0, y: -20}}
           animate={{opacity: 1, y: 0}}
           transition={{duration: 0.5}}
-          className="bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 rounded-3xl mx-0 relative pb-12 shadow-md"
+          className={`bg-gradient-to-br from-${habit?.color}-400 via-${habit?.color}-600 to-${habit?.color}-800 rounded-3xl mx-0 relative pb-12 shadow-md`}
         >
           {/* Header Navigation */}
           <div className="flex items-center justify-between p-6 pt-12 text-white">

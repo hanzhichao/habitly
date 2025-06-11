@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import {Plus, ArrowRight, Book, Zap, Droplets, CheckCircle2, Circle, LucideIcon, Heart, Edit3} from "lucide-react"
 import {useHabit} from "@/hooks/use-habit";
 import {useRouter}  from "next/navigation";
-import {addRecord, getHabit, getHabits} from "@/lib/habits";
+import {addOrUpdateRecord, getHabit, getHabits} from "@/lib/habits";
 import {Habit} from "@/lib/types";
 
 const weeklyData = [
@@ -25,9 +25,7 @@ const weeklyData = [
 function getIcons() {
   const icons = new Map<string, LucideIcon>();
   icons.set("arrow-right", ArrowRight);
-  icons.set("arrow-right", ArrowRight);
   icons.set("zap", Zap);
-  icons.set("droplets", Droplets);
   icons.set("droplets", Droplets);
   icons.set("edit", Edit3);
   icons.set("heart", Heart);
@@ -44,7 +42,7 @@ export default function HomePage() {
 
   const toggleHabit = (id: number) => {
     setHabits(habits.map((habit) => (habit.id === id ? {...habit, completed: !habit.completed} : habit)))
-    void addRecord(id)
+    void addOrUpdateRecord(id)
   }
 
   useEffect(() => {
@@ -119,6 +117,9 @@ export default function HomePage() {
           <div className="space-y-3">
             {habits.map((habit, index) => {
               const Icon = icons.get(habit.icon) ?? ArrowRight;
+              console.log("icon")
+              console.log(Icon)
+              console.log("habit color", habit.color)
               return (
                 <motion.div
                   key={habit.id}
@@ -129,7 +130,7 @@ export default function HomePage() {
                   <Card className="overflow-hidden border-white bg-white shadow-md rounded-2xl">
                     <CardContent className="p-0">
                       <div className="flex items-center px-4">
-                        <div className={`w-12 h-12 rounded-4xl ${habit.color} flex items-center justify-center mr-4 cursor-pointer`} onClick={() => {onSelectHabit(habit.id)}}>
+                        <div className={`w-12 h-12 rounded-4xl bg-${habit.color}-500 flex items-center justify-center mr-4 cursor-pointer`} onClick={() => {onSelectHabit(habit.id)}}>
                           <Icon className="w-6 h-6 text-white"/>
                         </div>
                         <div className="flex-1" >
