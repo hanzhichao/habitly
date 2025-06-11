@@ -2,45 +2,52 @@
 
 import {useEffect, useState} from "react"
 import {useRouter} from "next/navigation"
-import {motion} from "framer-motion"
 import {Card, CardContent} from "@/components/ui/card"
 import {Edit, ArrowLeft, ArrowRight, Edit3, ChevronLeft, ChevronRight} from "lucide-react"
 import {useHabit} from "@/hooks/use-habit";
 import {getHabit} from "@/lib/habits"
 import {Habit} from "@/lib/types";
-import {Calendar} from "@/components/ui/calendar";
+import {CustomCalendar} from "@/components/custom-calendar";
 
-// import "react-day-picker/style.css";
-
+const colorMap = {
+  purple: "bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800",
+  yellow: "bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-800",
+  blue: "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800",
+  green: "bg-gradient-to-br from-green-400 via-green-600 to-green-800",
+  red: "bg-gradient-to-br from-red-400 via-red-600 to-red-800",
+  // ...
+}
 
 export default function HabitDetailPage() {
   const router = useRouter()
   const habitId = useHabit((state) => state.habitId)
-  const [habit, setHabit] = useState<Habit>()
+  const setHabit = useHabit((state) => state.setHabit)
+  const habit = useHabit((state) => state.habit)
+  // const [habit, setHabit] = useState<Habit>()
 
   const completedDates = [
-    new Date(2023, 5, 1),
-    new Date(2023, 5, 2),
-    new Date(2023, 5, 5),
-    new Date(2023, 5, 6),
-    new Date(2023, 5, 7),
-    new Date(2023, 5, 8),
-    new Date(2023, 5, 9),
-    new Date(2023, 5, 12),
-    new Date(2023, 5, 13),
-    new Date(2023, 5, 14),
-    new Date(2023, 5, 15),
-    new Date(2023, 5, 16),
-    new Date(2023, 5, 19),
-    new Date(2023, 5, 20),
-    new Date(2023, 5, 21),
-    new Date(2023, 5, 22),
-    new Date(2023, 5, 23),
-    new Date(2023, 5, 26),
-    new Date(2023, 5, 27),
-    new Date(2023, 5, 28),
-    new Date(2023, 5, 29),
-    new Date(2023, 5, 30),
+    new Date(2025, 5, 1),
+    new Date(2025, 5, 2),
+    new Date(2025, 5, 5),
+    new Date(2025, 5, 6),
+    new Date(2025, 5, 7),
+    new Date(2025, 5, 8),
+    new Date(2025, 5, 9),
+    new Date(2025, 5, 12),
+    new Date(2025, 5, 13),
+    new Date(2025, 5, 14),
+    new Date(2025, 5, 15),
+    new Date(2025, 5, 16),
+    new Date(2025, 5, 19),
+    new Date(2025, 5, 20),
+    new Date(2025, 5, 21),
+    new Date(2025, 5, 22),
+    new Date(2025, 5, 23),
+    new Date(2025, 5, 26),
+    new Date(2025, 5, 27),
+    new Date(2025, 5, 28),
+    new Date(2025, 5, 29),
+    new Date(2025, 5, 30),
   ]
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(2023, 5, 21)) // June 21, 2023
@@ -63,45 +70,33 @@ export default function HabitDetailPage() {
     )
   }
 
-  const onEdit = (habit: Habit) => {
-    router.push("/add-habit")
+  const onEdit = (habit?: Habit) => {
+    if (typeof habit !== "undefined"){
+      router.push("/add-habit")
+    }
   }
+
+  const colorKey = habit?.color.split("-")[1] ?? "blue"
+  const bgColor = colorMap[colorKey]
 
   return (
     <div className="relative min-h-screen">
-      <motion.div
-        initial={{opacity: 0, scale: 0.95}}
-        animate={{opacity: 1, scale: 1}}
-        transition={{duration: 0.5}}
-        className="absolute w-full mx-auto min-h-screen bg-gradient-to-br from-indigo-100 to-indigo-50"
-      >
-        <motion.div
-          initial={{opacity: 0, y: -20}}
-          animate={{opacity: 1, y: 0}}
-          transition={{duration: 0.5}}
-          className={`bg-gradient-to-br from-${habit?.color}-400 via-${habit?.color}-600 to-${habit?.color}-800 rounded-3xl mx-0 relative pb-12 shadow-md`}
-        >
+      <div className="absolute w-full mx-auto min-h-screen bg-gradient-to-br from-indigo-100 to-indigo-50">
+        <div className={`${bgColor} rounded-3xl mx-0 relative pb-12 shadow-md`}>
           {/* Header Navigation */}
           <div className="flex items-center justify-between p-6 pt-12 text-white">
-            <motion.button
-              whileHover={{scale: 1.05}}
-              whileTap={{scale: 0.95}}
-              onClick={() => router.back()}
-              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
-            >
+            <button
+              onClick={() => {router.back()}}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <ArrowLeft className="w-5 h-5"/>
-            </motion.button>
-            <h1 className="text-xl font-semibold">{habit?.name}</h1>
-            <motion.button
-              whileHover={{scale: 1.05}}
-              whileTap={{scale: 0.95}}
+            </button>
+            <h1 className="text-2xl font-semibold">{habit?.name}</h1>
+            <button
               className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
-              onClick={() => {
-                onEdit(habit)
-              }}
+              onClick={() => {onEdit(habit)}}
             >
               <Edit className="w-4 h-4"/>
-            </motion.button>
+            </button>
           </div>
 
           {/* Habit Info */}
@@ -120,11 +115,7 @@ export default function HabitDetailPage() {
           {/* Stats Cards - Positioned at bottom of blue section */}
           <div className="absolute -bottom-16 left-6 right-6">
             <div className="grid grid-cols-3 gap-3">
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.2, duration: 0.5}}
-              >
+              <div>
                 <Card className="bg-white border-0 shadow-md h-30">
                   <CardContent className="px-2 text-center">
                     <p className="text-xs text-gray-500 mb-1">Current Streak</p>
@@ -132,13 +123,9 @@ export default function HabitDetailPage() {
                     <p className="text-xs text-gray-500">days</p>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.3, duration: 0.5}}
-              >
+              <div>
                 <Card className="bg-white shadow-md border-0 h-30">
                   <CardContent className="px-2 text-center">
                     <p className="text-xs text-gray-500 mb-1">Completion Rate</p>
@@ -146,13 +133,9 @@ export default function HabitDetailPage() {
                     <p className="text-xs text-gray-500">%</p>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.4, duration: 0.5}}
-              >
+              <div>
                 <Card className="bg-white shadow-md border-0 h-30">
                   <CardContent className="px-2 text-center">
                     <p className="text-xs text-gray-500 mb-1">Best Streak</p>
@@ -160,50 +143,20 @@ export default function HabitDetailPage() {
                     <p className="text-xs text-gray-500">days</p>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             </div>
           </div>
 
-        </motion.div>
+        </div>
 
         {/* Header */}
 
 
         {/* Calendar */}
-        <motion.div
-          initial={{opacity: 0, y: 20}}
-          animate={{opacity: 1, y: 0}}
-          transition={{delay: 0.5, duration: 0.5}}
-          className="flex-1 p-6 mt-15"
-        >
+        <div className="flex-1 p-6 mt-15">
           <Card className="bg-white w-full rounded-3xl border-0">
             <CardContent className="">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border-0 w-full px-0"
-                captionLayout="label"
-                showOutsideDays
-                defaultMonth={new Date(2023, 5)} // June 2023
-                modifiers={{
-                  completed: completedDates,
-                }}
-                modifiersStyles={{
-                  completed: {
-                    backgroundColor: "#86efac",
-                    color: "#166534",
-                    borderRadius: "50%",
-                  },
-                }}
-                classNames={{
-                  day_selected: "bg-green-500 text-white hover:bg-green-600 hover:text-white focus:bg-green-500 focus:text-white rounded-full items-center",
-                  day: "hover:bg-gray-100 transition-colors rounded-full mx-auto",
-                  caption: "flex justify-center pt-1 relative items-center mb-4",
-                  caption_label: "text-md font-bold text-gray-700",
-                  day_outside: "text-gray-300 opacity-50"
-                }}
-              />
+              <CustomCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} completedDates={completedDates} />
             </CardContent>
           </Card>
 
@@ -246,8 +199,8 @@ export default function HabitDetailPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }

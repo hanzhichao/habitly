@@ -1,117 +1,152 @@
 "use client"
 
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {useRouter} from "next/navigation"
-import {motion} from "framer-motion"
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {Switch} from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {ChevronLeft, ArrowRight, Book, Zap, Droplets, Heart, Edit3} from "lucide-react"
-import {addHabit} from "@/lib/habits";
+import {ChevronLeft, ArrowRight, Book, Zap, Droplets, Heart, Edit3, Camera, PenLine, Moon, Pencil, FileText, Image, BookOpen, PenTool} from "lucide-react"
+import {addHabit, updateHabit} from "@/lib/habits";
 import {cn} from "@/lib/utils";
+import {Habit} from "@/lib/types";
+import {useHabit} from "@/hooks/use-habit";
 
 const iconOptions = [
   {icon: ArrowRight, color: "bg-blue-500", name: "arrow"},
   {icon: Book, color: "bg-purple-500", name: "book"},
+  {icon: BookOpen, color: "bg-slate-500", name: "bookopen"},
   {icon: Zap, color: "bg-yellow-500", name: "zap"},
   {icon: Droplets, color: "bg-green-500", name: "droplets"},
   {icon: Heart, color: "bg-red-500", name: "heart"},
   {icon: Edit3, color: "bg-indigo-500", name: "edit"},
+  {icon: Camera, color: "bg-cyan-500", name: "camera"},
+  {icon: Image, color: "bg-sky-500", name: "image"},
+  {icon: PenLine, color: "bg-neutral-500", name: "penline"},
+  {icon: PenTool, color: "bg-stone-500", name: "pentool"},
+  {icon: Moon, color: "bg-amber-500", name: "moon"},
+
 ]
 
 const daysOfWeek = [
-  {key: "M", label: "Mon"},
-  {key: "T", label: "Tue"},
-  {key: "W", label: "Wed"},
-  {key: "T", label: "Thu"},
-  {key: "F", label: "Fri"},
-  {key: "S", label: "Sat"},
-  {key: "S", label: "Sun"},
+  {key: "1", label: "周一"},
+  {key: "2", label: "周二"},
+  {key: "3", label: "周三"},
+  {key: "4", label: "周四"},
+  {key: "5", label: "周五"},
+  {key: "6", label: "周六"},
+  {key: "7", label: "周日"},
 ]
+
+
+// interface AddHabitPageProps {
+//   habit?: Habit
+// }
+
 
 export default function AddHabitPage() {
   const router = useRouter()
   const [habitName, setHabitName] = useState("")
   const [selectedIcon, setSelectedIcon] = useState(0)
-  const [frequency, setFrequency] = useState("Daily")
-  const [selectedDays, setSelectedDays] = useState(["M", "T", "W", "T", "F"])
+  const [frequency, setFrequency] = useState("每天")
+  const [selectedDays, setSelectedDays] = useState(["1", "2", "3", "4", "5"])
   const [reminderEnabled, setReminderEnabled] = useState(true)
-  const [reminderTime, setReminderTime] = useState("7:00 AM")
+  const [reminderTime, setReminderTime] = useState("7:00:00")
   const [goal, setGoal] = useState("")
-  const [goalUnit, setGoalUnit] = useState("km")
+  const habit = useHabit((state) => state.habit)
+  // const [goalUnit, setGoalUnit] = useState("km")
+
+  useEffect(() => {
+    if (typeof habit !== "undefined") {
+      let iconIndex = 0
+      for (let index= 1; index < iconOptions.length; index ++){
+        if (iconOptions[index].name == habit.icon){
+          iconIndex = index
+          break
+        }
+      }
+      setHabitName(habit.name)
+      setSelectedIcon(iconIndex)
+      setFrequency(habit.frequency)
+      setReminderTime(habit.reminder)
+      setGoal(habit.goal)
+    }
+  }, [habit?.id]);
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
   }
 
-  const handleSubmit = () => {
+  const onAddHabit = () => {
     const iconOption = iconOptions[selectedIcon]
-    // Here you would typically save the habit
-    void addHabit(habitName, goal, frequency, reminderTime, iconOption.name, iconOption.color)
+    let dbFrequency = "daily"
+    if (frequency === "每周") {
+      dbFrequency = "weekly:" + selectedDays.sort().join(",")
+    }
+    // 保存到数据库
+    void addHabit(habitName, goal, dbFrequency, reminderTime, iconOption.name, iconOption.color)
+    router.push("/")
+  }
+
+  const onUpdateHabit = () => {
+    if (typeof habit === "undefined") return
+    const iconOption = iconOptions[selectedIcon]
+    let dbFrequency = "daily"
+    if (frequency === "每周") {
+      dbFrequency = "weekly:" + selectedDays.sort().join(",")
+    }
+    // 保存到数据库
+    void updateHabit(habit.id, habitName, goal, dbFrequency, reminderTime, iconOption.name, iconOption.color)
     router.push("/")
   }
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <motion.div
-        initial={{opacity: 0, x: 20}}
-        animate={{opacity: 1, x: 0}}
-        transition={{duration: 0.5}}
-        className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen rounded-3xl"
-      >
+      <div className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen rounded-3xl">
         {/* Header */}
         <div className="flex items-center p-6 pt-12">
-          <motion.button
-            whileHover={{scale: 1.05}}
-            whileTap={{scale: 0.95}}
+          <button
             onClick={() => {
               router.back();
             }}
             className="p-2 mr-4 text-white bg-white shadow-sm rounded-4xl"
           >
             <ChevronLeft className="w-6 h-6 text-gray-700"/>
-          </motion.button>
-          <h1 className="text-xl font-semibold text-gray-700">Add New Habit</h1>
+          </button>
+          {typeof habit === "undefined" ? (
+            <h1 className="text-2xl font-semibold text-gray-700">添加新习惯</h1>
+          ) : (
+            <h1 className="text-2xl font-semibold text-gray-700">修改习惯</h1>
+          )}
         </div>
         <Card className="border-white bg-white shadow-md rounded-2xl mx-6">
           <CardContent className="px-2">
-            <div className="p-5 space-y-6">
+            <div className="px-5 space-y-6">
               {/* Habit Name */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.1, duration: 0.5}}
-              >
+              <div>
                 <Label htmlFor="habit-name" className="text-base font-medium text-gray-700">
-                  Habit Name
+                  习惯名称
                 </Label>
                 <Input
                   id="habit-name"
-                  placeholder="e.g. Morning Run"
+                  placeholder=""
                   value={habitName}
                   onChange={(e) => {
                     setHabitName(e.target.value);
                   }}
                   className="mt-2 border-gray-300 rounded-lg"
                 />
-              </motion.div>
+              </div>
 
               {/* Choose Icon */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.2, duration: 0.5}}
-              >
-                <Label className="text-base font-medium text-gray-700">Choose Icon</Label>
+              <div>
+                <Label className="text-base font-medium text-gray-700">选择图标</Label>
                 <div className="grid grid-cols-6 gap-3 mt-3">
                   {iconOptions.map((option, index) => (
-                    <motion.button
+                    <button
                       key={index}
-                      whileHover={{scale: 1.05}}
-                      whileTap={{scale: 0.95}}
                       onClick={() => {
                         setSelectedIcon(index);
                       }}
@@ -120,20 +155,16 @@ export default function AddHabitPage() {
                       }`}
                     >
                       <option.icon className="w-6 h-6 text-white"/>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
-              </motion.div>
+              </div>
 
               {/* Frequency */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.3, duration: 0.5}}
-              >
-                <Label className="text-base font-medium text-gray-700">Frequency</Label>
+              <div>
+                <Label className="text-base font-medium text-gray-700">频率</Label>
                 <div className="flex gap-2 mt-3">
-                  {["Daily", "Weekly", "Custom"].map((freq) => (
+                  {["每天", "每周"].map((freq) => (
                     <Button
                       key={freq}
                       variant={frequency === freq ? "default" : "outline"}
@@ -146,104 +177,77 @@ export default function AddHabitPage() {
                     </Button>
                   ))}
                 </div>
-              </motion.div>
+              </div>
 
               {/* Days of Week */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.4, duration: 0.5}}
-              >
-                <Label className="text-base font-medium text-gray-700">Days of Week</Label>
-                <div className="flex gap-2 mt-3">
-                  {daysOfWeek.map((day, index) => (
-                    <Button
-                      key={`${day.key}-${index}`}
-                      variant={selectedDays.includes(day.key) ? "default" : "outline"}
-                      onClick={() => {
-                        toggleDay(day.key);
-                      }}
-                      className={cn("w-10 h-10 rounded-full p-0 border-0", selectedDays.includes(day.key) ? "bg-blue-500 text-white" : "bg-neutral-100")}
-                    >
-                      {day.key}
-                    </Button>
-                  ))}
+              {frequency === "每周" && (
+                <div>
+                  {/*<Label className="text-base font-medium text-gray-700">星期</Label>*/}
+                  <div className="flex gap-2 mt-3">
+                    {daysOfWeek.map((day, index) => (
+                      <Button
+                        key={`${day.key}-${index}`}
+                        variant={selectedDays.includes(day.key) ? "default" : "outline"}
+                        onClick={() => {
+                          toggleDay(day.key);
+                        }}
+                        className={cn("w-10 h-10 rounded-full p-0 border-0", selectedDays.includes(day.key) ? "bg-blue-500 text-white" : "bg-neutral-200")}
+                      >
+                        {day.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </motion.div>
-
+              )}
               {/* Reminder */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.5, duration: 0.5}}
-              >
+              <div>
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium text-gray-700">Reminder</Label>
-                  <Switch checked={reminderEnabled} onCheckedChange={setReminderEnabled}/>
+                  <Label className="text-base font-medium text-gray-700 mb-2">提醒</Label>
+                  <Switch checked={reminderEnabled} onCheckedChange={setReminderEnabled}
+                          className="bg-neutral-100 right-2 border-neutral-50"/>
                 </div>
                 {reminderEnabled && (
-                  <motion.div
-                    initial={{opacity: 0, height: 0}}
-                    animate={{opacity: 1, height: "auto"}}
-                    transition={{duration: 0.3}}
-                    className="mt-3"
-                  >
-                    <Select value={reminderTime} onValueChange={setReminderTime}>
-                      <SelectTrigger className="border-gray-300 w-full">
-                        <SelectValue/>
-                      </SelectTrigger>
-                      <SelectContent className="bg-neutral-50 border-0">
-                        <SelectItem value="6:00 AM">6:00 AM</SelectItem>
-                        <SelectItem value="7:00 AM">7:00 AM</SelectItem>
-                        <SelectItem value="8:00 AM">8:00 AM</SelectItem>
-                        <SelectItem value="9:00 AM">9:00 AM</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </motion.div>
-                )}
-              </motion.div>
-
-              {/* Goal */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.6, duration: 0.5}}
-              >
-                <Label className="text-base font-medium text-gray-700">Goal (optional)</Label>
-                <div className="flex gap-2 mt-3">
-                  <Input placeholder="e.g. 5" value={goal} onChange={(e) => {
-                    setGoal(e.target.value);
-                  }} className="flex-1 border-gray-300 w-full"/>
-                  <Select value={goalUnit} onValueChange={setGoalUnit}>
-                    <SelectTrigger className="w-20 border-gray-300">
+                  <Select value={reminderTime} onValueChange={setReminderTime}>
+                    <SelectTrigger className="border-gray-300 w-full">
                       <SelectValue/>
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="km">km</SelectItem>
-                      <SelectItem value="min">min</SelectItem>
-                      <SelectItem value="times">times</SelectItem>
-                      <SelectItem value="pages">pages</SelectItem>
+                    <SelectContent className="bg-neutral-50 border-0">
+                      <SelectItem value="6:00:00">6:00 AM</SelectItem>
+                      <SelectItem value="7:00:00">7:00 AM</SelectItem>
+                      <SelectItem value="8:00:00">8:00 AM</SelectItem>
+                      <SelectItem value="9:00:00">9:00 AM</SelectItem>
                     </SelectContent>
                   </Select>
+                )}
+              </div>
+
+              {/* Goal */}
+              <div>
+                <Label className="text-base font-medium text-gray-700">目标 (可选)</Label>
+                <div className="flex gap-2 mt-3">
+                  <Input placeholder="" value={goal} onChange={(e) => {
+                    setGoal(e.target.value);
+                  }} className="flex-1 border-gray-300 w-full"/>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Submit Button */}
-              <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{delay: 0.7, duration: 0.5}}
-                className="pt-6"
-              >
-                <Button onClick={handleSubmit} className="w-full h-12 bg-blue-500 font-medium rounded-2xl text-white"
-                        disabled={!habitName.trim()}>
-                  Create Habit
-                </Button>
-              </motion.div>
+              <div className="pt-6">
+                {typeof habit === "undefined" ? (
+                  <Button onClick={onAddHabit} className="w-full h-12 bg-blue-500 font-bold rounded-xl text-white" disabled={!habitName.trim()}>
+                    创建习惯
+                  </Button>
+                ):(
+                    <Button onClick={onUpdateHabit} className="w-full h-12 bg-blue-500 font-bold rounded-xl text-white" disabled={!habitName.trim()}>
+                      修改习惯
+                    </Button>
+                  )
+                }
+              </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
     </div>
   )

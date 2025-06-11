@@ -9,17 +9,17 @@ export interface Habit {
   icon: string,
   color: string,
   start_date: string,
-  end_date: string,
+  end_date: string | null,
   create_at: string,
   update_at: string,
-  completed?: boolean
+  status?: number
 }
 
 export interface Record {
   record_id: number,
   habit_id: number,
   record_date: string,
-  completed: boolean
+  status: number
   note: string,
   create_at: string,
   update_at: string,

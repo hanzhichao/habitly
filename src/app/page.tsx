@@ -8,19 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {Plus, ArrowRight, Book, Zap, Droplets, CheckCircle2, Circle, LucideIcon, Heart, Edit3} from "lucide-react"
 import {useHabit} from "@/hooks/use-habit";
-import {useRouter}  from "next/navigation";
-import {addOrUpdateRecord, getHabit, getHabits} from "@/lib/habits";
+import {useRouter, usePathname} from "next/navigation";
+import {
+  toggleRecordStatusOfToday,
+  getTodayHabits,
+  getWeeklyData
+} from "@/lib/habits";
 import {Habit} from "@/lib/types";
 
-const weeklyData = [
-  { day: "M", progress: 85, completed: true },
-  { day: "T", progress: 90, completed: true },
-  { day: "W", progress: 100, completed: true },
-  { day: "T", progress: 75, completed: true },
-  { day: "F", progress: 80, completed: true },
-  { day: "S", progress: 60, completed: false },
-  { day: "S", progress: 40, completed: false },
-]
+
 
 function getIcons() {
   const icons = new Map<string, LucideIcon>();
@@ -33,148 +29,169 @@ function getIcons() {
   return icons
 }
 
+const colorMap = {
+  purple: "bg-purple-500",
+  yellow: "bg-yellow-500",
+  blue: "bg-blue-500",
+  green: "bg-green-500",
+  red: "bg-red-500",
+  zink: "bg-zink-500",
+  grey: "bg-grey-500",
+  slate: "bg-slate-500",
+  indigo: "bg-indigo-500",
+  cyan: "bg-cyan-500",
+  neutral: "bg-neutral-500",
+  // ...
+}
+
+
 export default function HomePage() {
   const [habits, setHabits] = useState<Habit[]>([])
-  // const [icon, setIcon] = useState<LucideIcon>(ArrowRight)
-  const setHabitId = useHabit((state)=>state.setHabitId)
+  const [count, setCount] = useState(0)
+  const [weeklyData, setWeeklyData] = useState<{ day: string, progress: number, completed: boolean }[]>([])
+  const setHabitId = useHabit((state) => state.setHabitId)
+  const setHabit = useHabit((state) => state.setHabit)
   const icons = getIcons()
   const router = useRouter()
+  const pathname = usePathname();
 
-  const toggleHabit = (id: number) => {
-    setHabits(habits.map((habit) => (habit.id === id ? {...habit, completed: !habit.completed} : habit)))
-    void addOrUpdateRecord(id)
-  }
 
   useEffect(() => {
-    void getHabits().then(habits => {setHabits(habits)})
-  }, []);
+    void getWeeklyData().then(data => {
+      console.log('weeklydata')
+      console.log(data)
+      setWeeklyData(data)
+    })
+  }, [count]);
 
-  const onSelectHabit = (habitId: number)=> {
-      console.log("click: " + habitId.toString())
-      setHabitId(habitId)
-      router.push("/habit-detail")
+  useEffect(() => {
+    setHabit(undefined)
+    void getTodayHabits().then(habits => {
+      setHabits(habits)
+      console.log('habits')
+      console.log(habits)
+    })
+  }, [pathname]);
+
+
+  const toggleHabit = (id: number) => {
+    setHabits(habits.map((habit) => (habit.id === id ? {...habit, status: habit.status === 1 ? 0 : 1} : habit)))
+    void toggleRecordStatusOfToday(id)
+    setCount(count+1)
   }
 
+  const onSelectHabit = (habitId: number) => {
+    console.log("click: " + habitId.toString())
+    setHabitId(habitId)
+    router.push("/habit-detail")
+  }
+
+  const totalDays = weeklyData.length; // 通常为7
+  const completedDays = weeklyData.filter(d => d.completed).length;
+  const percent = Math.round((completedDays / totalDays) * 100);
+
   return (
-    <div className="min-h-screen pb-20">
-      <motion.div
-        initial={{opacity: 0, y: 20}}
-        animate={{opacity: 1, y: 0}}
-        transition={{duration: 0.5}}
-        className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen"
-      >
+    <div className="min-h-screen">
+      <div className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen rounded-3xl pb-25">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pt-12">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Habits</h1>
-            <p className="text-gray-500 text-sm">Track your daily progress</p>
+            <h1 className="text-2xl font-bold text-gray-900">我的习惯</h1>
+            <p className="text-gray-500 text-sm mt-1">追踪你的每日进程</p>
           </div>
-          <Avatar className="w-10 h-10 shadow-md">
-            <AvatarImage src="/placeholder.svg"/>
-            <AvatarFallback className="bg-blue-500 text-white">U</AvatarFallback>
+          <Avatar className="w-12 h-12 shadow-md cursor-pointer">
+            {/* <AvatarImage src="/placeholder.svg"/> */}
+            <AvatarFallback className="bg-blue-500 text-white">石</AvatarFallback>
           </Avatar>
         </div>
 
         {/* Weekly Progress */}
-        <motion.div
-          initial={{opacity: 0, scale: 0.95}}
-          animate={{opacity: 1, scale: 1}}
-          transition={{delay: 0.1, duration: 0.5}}
-          className="mx-6 mb-6"
-        >
+        <div className="mx-6 mb-6">
           <Card className="border-white bg-white shadow-md rounded-2xl">
             <CardContent className="px-6 cursor-pointer">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Weekly Progress</h2>
-                <span className="text-gray-500">75%</span>
+                <h2 className="font-semibold text-gray-900">每周进度</h2>
+                <span className="text-gray-500">{percent}%</span>
               </div>
               <div className="flex items-end justify-between gap-3 h-28">
                 {weeklyData.map((day, index) => (
                   <motion.div
-                    key={index}
+                    key={`${day.day}-${day.progress}-${day.completed}`}
                     initial={{height: 0}}
-                    animate={{height: `${day.progress}%`}}
+                    animate={{height: `100%`}}
                     transition={{delay: 0.2 + index * 0.1, duration: 0.6}}
-                    className="flex flex-col items-center gap-2 flex-1"
+                    className="flex flex-col justify-end items-center gap-2 flex-1 bg-neutral-100 rounded-full"
                   >
                     <div
                       className={`w-full rounded-full ${
-                        day.completed ? "bg-gradient-to-b from-blue-500 to-blue-400" : "bg-blue-300"
+                        day.completed
+                          ? "bg-gradient-to-b from-blue-500 to-blue-400"
+                          : "bg-gradient-to-b from-blue-200 to-blue-300"
                       } transition-colors duration-300`}
                       style={{height: `${day.progress}%`}}
                     />
-                    <span className="text-xs text-gray-500 font-medium">{day.day}</span>
                   </motion.div>
+                ))}
+              </div>
+              <div className="flex justify-between mt-2">
+                {["周一", "周二", "周三", "周四", "周五", "周六", "周日"].map((d, i) => (
+                  <span key={i} className="text-xs text-gray-500 font-medium flex-1 text-center">{d}</span>
                 ))}
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Today's Habits */}
         <div className="px-6">
-          <h2 className="font-semibold text-gray-900 mb-4">{"Today's Habits"}</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{"今日习惯"}</h2>
           <div className="space-y-3">
             {habits.map((habit, index) => {
               const Icon = icons.get(habit.icon) ?? ArrowRight;
-              console.log("icon")
-              console.log(Icon)
-              console.log("habit color", habit.color)
               return (
-                <motion.div
-                  key={habit.id}
-                  initial={{opacity: 0, x: -20}}
-                  animate={{opacity: 1, x: 0}}
-                  transition={{delay: 0.3 + index * 0.1, duration: 0.5}}
-                >
-                  <Card className="overflow-hidden border-white bg-white shadow-md rounded-2xl">
+                <div key={index}>
+                  <Card className="overflow-hidden border-white bg-white shadow-md rounded-2xl hover:bg-neutral-50 hover:border-neutral-50">
                     <CardContent className="p-0">
                       <div className="flex items-center px-4">
-                        <div className={`w-12 h-12 rounded-4xl bg-${habit.color}-500 flex items-center justify-center mr-4 cursor-pointer`} onClick={() => {onSelectHabit(habit.id)}}>
+                        <div
+                          className={`flex w-12 h-12 rounded-4xl items-center justify-center mr-4 cursor-pointer ${habit.color} `}
+                          onClick={() => {
+                            onSelectHabit(habit.id)
+                          }}>
                           <Icon className="w-6 h-6 text-white"/>
                         </div>
-                        <div className="flex-1" >
+                        <div className="flex-1">
                           <div>
                             <h3 className="font-semibold text-gray-900">{habit.name}</h3>
                             <p className="text-sm text-gray-500">{habit.goal} • {habit.reminder}</p>
                           </div>
                         </div>
 
-                        <motion.button
-                          whileScale={{scale: 0.95}}
-                          whileTap={{scale: 0.9}}
-                          onClick={() => toggleHabit(habit.id)}
-                          className="ml-4"
-                        >
-                          {habit.completed ? (
+                        <button onClick={() => {toggleHabit(habit.id)}} className="ml-4">
+                          {Number(habit.status) === 1 ? (
                             <CheckCircle2 className="w-7 h-7 text-green-500"/>
                           ) : (
                             <Circle className="w-7 h-7 text-gray-300"/>
                           )}
-                        </motion.button>
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
-                )
+                </div>
+              )
             })}
           </div>
         </div>
 
         {/* Floating Add Button */}
-        <motion.div
-          initial={{scale: 0}}
-          animate={{scale: 1}}
-          transition={{delay: 0.8, type: "spring", stiffness: 200}}
-          className="fixed bottom-8 right-8"
-        >
+        <div className="fixed bottom-5 right-7">
           <Link href="/add-habit">
-            <Button size="lg" className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md">
+            <Button size="lg" className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md cursor-pointer">
               <Plus className="w-8 h-8 text-white"/>
             </Button>
           </Link>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }
