@@ -74,7 +74,8 @@ export default function HomePage() {
   }, [pathname]);
 
 
-  const toggleHabit = (id: number) => {
+  const toggleHabit = (e: MouseEvent<HTMLButtonElement, MouseEvent>, id: number) => {
+    e.stopPropagation()
     setHabits(habits.map((habit) => (habit.id === id ? {...habit, status: habit.status === 1 ? 0 : 1} : habit)))
     void toggleRecordStatusOfToday(id)
     setCount(count+1)
@@ -150,14 +151,10 @@ export default function HomePage() {
               const Icon = icons.get(habit.icon) ?? ArrowRight;
               return (
                 <div key={index}>
-                  <Card className="overflow-hidden border-white bg-white shadow-md rounded-2xl hover:bg-neutral-50 hover:border-neutral-50">
+                  <Card className="overflow-hidden  cursor-pointer border-white bg-white shadow-md rounded-2xl hover:bg-neutral-50 hover:border-neutral-50" onClick={() => {onSelectHabit(habit.id)}}>
                     <CardContent className="p-0">
                       <div className="flex items-center px-4">
-                        <div
-                          className={`flex w-12 h-12 rounded-4xl items-center justify-center mr-4 cursor-pointer ${habit.color} `}
-                          onClick={() => {
-                            onSelectHabit(habit.id)
-                          }}>
+                        <div className={`flex w-12 h-12 rounded-4xl items-center justify-center mr-4 ${habit.color} `}>
                           <Icon className="w-6 h-6 text-white"/>
                         </div>
                         <div className="flex-1">
@@ -166,8 +163,7 @@ export default function HomePage() {
                             <p className="text-sm text-gray-500">{habit.goal} • {habit.reminder}</p>
                           </div>
                         </div>
-
-                        <button onClick={() => {toggleHabit(habit.id)}} className="ml-4">
+                        <button onClick={(e) => {toggleHabit(e,habit.id)}} className="ml-4">
                           {Number(habit.status) === 1 ? (
                             <CheckCircle2 className="w-7 h-7 text-green-500"/>
                           ) : (

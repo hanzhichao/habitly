@@ -3,9 +3,20 @@
 import {useEffect, useState} from "react"
 import {useRouter} from "next/navigation"
 import {Card, CardContent} from "@/components/ui/card"
-import {Edit, ArrowLeft, ArrowRight, Edit3, ChevronLeft, ChevronRight} from "lucide-react"
+import {
+  Edit,
+  ArrowLeft,
+  ArrowRight,
+  Edit3,
+  ChevronLeft,
+  ChevronRight,
+  Book,
+  BookOpen,
+  Zap,
+  Droplets, Heart, Camera, Image, PenLine, PenTool, Moon, LucideIcon
+} from "lucide-react"
 import {useHabit} from "@/hooks/use-habit";
-import {getHabit} from "@/lib/habits"
+import {getCompletedRecords, getHabit} from "@/lib/habits"
 import {Habit} from "@/lib/types";
 import {CustomCalendar} from "@/components/custom-calendar";
 
@@ -15,8 +26,40 @@ const colorMap = {
   blue: "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800",
   green: "bg-gradient-to-br from-green-400 via-green-600 to-green-800",
   red: "bg-gradient-to-br from-red-400 via-red-600 to-red-800",
+  cyan: "bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800",
   // ...
 }
+
+const iconOptions = [
+  {icon: ArrowRight, color: "bg-blue-500", name: "arrow"},
+  {icon: Book, color: "bg-purple-500", name: "book"},
+  {icon: BookOpen, color: "bg-slate-500", name: "bookopen"},
+  {icon: Zap, color: "bg-yellow-500", name: "zap"},
+  {icon: Droplets, color: "bg-green-500", name: "droplets"},
+  {icon: Heart, color: "bg-red-500", name: "heart"},
+  {icon: Edit3, color: "bg-indigo-500", name: "edit"},
+  {icon: Camera, color: "bg-cyan-500", name: "camera"},
+  {icon: Image, color: "bg-sky-500", name: "image"},
+  {icon: PenLine, color: "bg-neutral-500", name: "penline"},
+  {icon: PenTool, color: "bg-stone-500", name: "pentool"},
+  {icon: Moon, color: "bg-amber-500", name: "moon"},
+]
+
+const colorMap2 = {
+  purple: "text-purple-500",
+  yellow: "text-yellow-500",
+  blue: "text-blue-500",
+  green: "text-green-500",
+  red: "text-red-500",
+  zink: "text-zink-500",
+  grey: "text-grey-500",
+  slate: "text-slate-500",
+  indigo: "text-indigo-500",
+  cyan: "text-cyan-500",
+  neutral: "text-neutral-500",
+  // ...
+}
+
 
 export default function HabitDetailPage() {
   const router = useRouter()
@@ -24,39 +67,39 @@ export default function HabitDetailPage() {
   const setHabit = useHabit((state) => state.setHabit)
   const habit = useHabit((state) => state.habit)
   // const [habit, setHabit] = useState<Habit>()
+  const [completedDates, setCompletedDates] = useState<Date[]>([])
+  const [Icon, setIcon] = useState<LucideIcon>(ArrowRight)
+  const [color, setColor] = useState<string>("text-white")
 
-  const completedDates = [
-    new Date(2025, 5, 1),
-    new Date(2025, 5, 2),
-    new Date(2025, 5, 5),
-    new Date(2025, 5, 6),
-    new Date(2025, 5, 7),
-    new Date(2025, 5, 8),
-    new Date(2025, 5, 9),
-    new Date(2025, 5, 12),
-    new Date(2025, 5, 13),
-    new Date(2025, 5, 14),
-    new Date(2025, 5, 15),
-    new Date(2025, 5, 16),
-    new Date(2025, 5, 19),
-    new Date(2025, 5, 20),
-    new Date(2025, 5, 21),
-    new Date(2025, 5, 22),
-    new Date(2025, 5, 23),
-    new Date(2025, 5, 26),
-    new Date(2025, 5, 27),
-    new Date(2025, 5, 28),
-    new Date(2025, 5, 29),
-    new Date(2025, 5, 30),
-  ]
-
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(2023, 5, 21)) // June 21, 2023
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(2025, 5, 21)) // June 21, 2023
 
   useEffect(() => {
     void getHabit(habitId).then(r => {
       if (r !== null) {
-        console.log(r)
+        let iconIndex = 0
+        for (let index= 1; index < iconOptions.length; index ++){
+          if (iconOptions[index].name == r.icon){
+            iconIndex = index
+            break
+          }
+        }
+        setIcon(iconOptions[iconIndex].icon)
+        const baseColor = iconOptions[iconIndex].color.split("-")[1]
+        setColor(`text-${baseColor}-500`)
         setHabit(r)
+
+      }
+    })
+  }, [habitId]);
+
+
+  useEffect(() => {
+    void getCompletedRecords(habitId).then(r => {
+      if (r.length >0 ) {
+        const dates = r.map(item=>new Date(item.record_date))
+        console.log('setCompletedDates')
+        console.log(dates)
+        setCompletedDates(dates)
       }
     })
   }, [habitId]);
@@ -103,10 +146,10 @@ export default function HabitDetailPage() {
           <div className="px-6 mb-8">
             <div className="flex items-center">
               <div className="w-16 h-16 bg-white/90 rounded-2xl flex items-center justify-center mr-4">
-                <ArrowRight className="w-8 h-8 text-blue-500"/>
+                <Icon className={`w-8 h-8 ${color}`}/>
               </div>
               <div className="text-white">
-                <p className="text-base opacity-90">Goal: {habit?.goal} • {habit?.reminder}</p>
+                <p className="text-base opacity-90">目标: {habit?.goal} • {habit?.reminder}</p>
                 <p className="text-base opacity-90">{habit?.frequency}</p>
               </div>
             </div>

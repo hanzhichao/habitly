@@ -11,7 +11,6 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {ChevronLeft, ArrowRight, Book, Zap, Droplets, Heart, Edit3, Camera, PenLine, Moon, Pencil, FileText, Image, BookOpen, PenTool} from "lucide-react"
 import {addHabit, updateHabit} from "@/lib/habits";
 import {cn} from "@/lib/utils";
-import {Habit} from "@/lib/types";
 import {useHabit} from "@/hooks/use-habit";
 
 const iconOptions = [
@@ -27,7 +26,6 @@ const iconOptions = [
   {icon: PenLine, color: "bg-neutral-500", name: "penline"},
   {icon: PenTool, color: "bg-stone-500", name: "pentool"},
   {icon: Moon, color: "bg-amber-500", name: "moon"},
-
 ]
 
 const daysOfWeek = [
