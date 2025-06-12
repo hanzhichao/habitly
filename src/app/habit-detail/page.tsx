@@ -19,16 +19,22 @@ import {useHabit} from "@/hooks/use-habit";
 import {getCompletedRecords, getHabit} from "@/lib/habits"
 import {Habit} from "@/lib/types";
 import {CustomCalendar} from "@/components/custom-calendar";
+import {differenceInDays, endOfMonth, isAfter, isBefore, isEqual, startOfMonth} from "date-fns";
 
-const colorMap = {
-  purple: "bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800",
-  yellow: "bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-800",
-  blue: "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800",
-  green: "bg-gradient-to-br from-green-400 via-green-600 to-green-800",
-  red: "bg-gradient-to-br from-red-400 via-red-600 to-red-800",
-  cyan: "bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800",
-  // ...
+function getColorMaps() {
+  const colorMap = new Map<string, string>();
+  colorMap.set("purple", "bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800")
+  colorMap.set("yellow", "bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-800")
+  colorMap.set("blue", "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800")
+  colorMap.set("green", "bg-gradient-to-br from-green-400 via-green-600 to-green-800")
+  colorMap.set("red", "bg-gradient-to-br from-red-400 via-red-600 to-red-800")
+  colorMap.set("cyan", "bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800")
+  return colorMap
 }
+
+
+const colorMap = getColorMaps()
+
 
 const iconOptions = [
   {icon: ArrowRight, color: "bg-blue-500", name: "arrow"},
@@ -70,12 +76,16 @@ export default function HabitDetailPage() {
   const [completedDates, setCompletedDates] = useState<Date[]>([])
   const [Icon, setIcon] = useState<LucideIcon>(ArrowRight)
   const [color, setColor] = useState<string>("text-white")
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [longestStreak, setLongestStreak] = useState(0)
+  const [completionRate, setCompletionRate] = useState(0)
+  const [monthlyCompletionRate, setMonthlyCompletionRate] = useState(0)
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(2025, 5, 21)) // June 21, 2023
 
   useEffect(() => {
     void getHabit(habitId).then(r => {
-      if (r !== null) {
+      if (r !== null && typeof r !== "undefined") {
         let iconIndex = 0
         for (let index= 1; index < iconOptions.length; index ++){
           if (iconOptions[index].name == r.icon){
@@ -100,6 +110,59 @@ export default function HabitDetailPage() {
         console.log('setCompletedDates')
         console.log(dates)
         setCompletedDates(dates)
+
+        const now = new Date();
+        const recordStart = new Date(r[0].record_date)
+        let totalDays = Math.abs(differenceInDays(now, recordStart))
+        totalDays = totalDays === 0 ? 1 : totalDays
+        console.log('recordStart', recordStart)
+        console.log('r.length', r.length)
+        console.log('totalDays', totalDays)
+        const completionRate = Math.round(r.length / totalDays * 100)
+        const monthStart = startOfMonth(now)
+        const monthEnd = endOfMonth(now)
+
+        let monthlyRecordCount = 0
+        if ((isEqual(recordStart, monthStart) || isAfter(recordStart, monthStart) &&
+          (isEqual(recordStart, monthEnd) || isBefore(recordStart, monthEnd)))){
+          monthlyRecordCount ++
+        }
+
+        let currentStreak = 1;
+        let longestStreak = 1;
+
+        let lastRecordDate = new Date(r[0].record_date)
+        for (const record of r.slice(1)) {
+          const recordDate = new Date(record.record_date)
+          if ((isEqual(recordDate, monthStart) || isAfter(recordDate, monthStart) &&
+            (isEqual(recordDate, monthEnd) || isBefore(recordDate, monthEnd)))){
+            monthlyRecordCount ++
+          }
+          const daysDiff = differenceInDays(recordDate, lastRecordDate);
+          if (daysDiff === 1) {
+            currentStreak++
+          } else {
+            currentStreak = 1
+          }
+          lastRecordDate = recordDate
+          longestStreak = Math.max(longestStreak, currentStreak);
+        }
+        const monthlyCompletionRate = Math.round(monthlyRecordCount / monthEnd.getDate() * 100)
+
+        setCurrentStreak(currentStreak)
+        setLongestStreak(longestStreak)
+        setCompletionRate(completionRate)
+        setMonthlyCompletionRate(monthlyCompletionRate)
+      }
+    })
+  }, [habitId]);
+
+
+  useEffect(() => {
+    void getCompletedRecords(habitId).then(r => {
+      if (r.length >0 ) {
+        const dates = r.map(item=>new Date(item.record_date))
+        setCompletedDates(dates)
       }
     })
   }, [habitId]);
@@ -120,7 +183,11 @@ export default function HabitDetailPage() {
   }
 
   const colorKey = habit?.color.split("-")[1] ?? "blue"
-  const bgColor = colorMap[colorKey]
+  const bgColor = colorMap.get(colorKey) ?? ""
+
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+  const percent = Math.max(0, Math.min(monthlyCompletionRate, 100));
 
   return (
     <div className="relative min-h-screen">
@@ -161,9 +228,9 @@ export default function HabitDetailPage() {
               <div>
                 <Card className="bg-white border-0 shadow-md h-30">
                   <CardContent className="px-2 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Current Streak</p>
-                    <p className="text-2xl font-bold text-gray-900">12</p>
-                    <p className="text-xs text-gray-500">days</p>
+                    <p className="text-xs text-gray-500 mb-1">当前持续</p>
+                    <p className="text-2xl font-bold text-gray-900">{currentStreak}</p>
+                    <p className="text-xs text-gray-500">天</p>
                   </CardContent>
                 </Card>
               </div>
@@ -171,8 +238,8 @@ export default function HabitDetailPage() {
               <div>
                 <Card className="bg-white shadow-md border-0 h-30">
                   <CardContent className="px-2 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Completion Rate</p>
-                    <p className="text-2xl font-bold text-gray-900">87</p>
+                    <p className="text-xs text-gray-500 mb-1">完成率</p>
+                    <p className="text-2xl font-bold text-gray-900">{completionRate}</p>
                     <p className="text-xs text-gray-500">%</p>
                   </CardContent>
                 </Card>
@@ -181,9 +248,9 @@ export default function HabitDetailPage() {
               <div>
                 <Card className="bg-white shadow-md border-0 h-30">
                   <CardContent className="px-2 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Best Streak</p>
-                    <p className="text-2xl font-bold text-gray-900">21</p>
-                    <p className="text-xs text-gray-500">days</p>
+                    <p className="text-xs text-gray-500 mb-1">最佳持续</p>
+                    <p className="text-2xl font-bold text-gray-900">{longestStreak}</p>
+                    <p className="text-xs text-gray-500">天</p>
                   </CardContent>
                 </Card>
               </div>
@@ -208,33 +275,33 @@ export default function HabitDetailPage() {
               {/* Activity Stats */}
               <div className="">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900">Activity Stats</h3>
-                  <span className="text-sm text-gray-500">This Month</span>
+                  <h3 className="font-semibold text-gray-900">活动统计</h3>
+                  <span className="text-sm text-gray-500">本月</span>
                 </div>
                 <div className="relative flex items-center justify-center">
                   <div className="relative">
                     <svg className="w-35 h-35 transform -rotate-90" viewBox="0 0 120 120">
                       {/* Background Ring */}
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="#f3f4f6" strokeWidth="8"/>
+                      <circle cx="60" cy="60" r={radius} fill="none" stroke="#f3f4f6" strokeWidth="8"/>
                       {/* Progress Ring */}
                       <circle
                         cx="60"
                         cy="60"
-                        r="50"
+                        r={radius}
                         fill="none"
                         stroke="#3b82f6"
                         strokeWidth="8"
                         strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 50}`}
-                        strokeDashoffset={`${2 * Math.PI * 50 * (1 - 0.75)}`}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference * (1 - percent / 100)}
                         className="transition-all duration-1000 ease-out"
                       />
                     </svg>
                     {/* Stats Content */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-gray-700 mb-1">75%</div>
-                        <p className="text-gray-500 text-xs">Complete</p>
+                        <div className="text-2xl font-bold text-gray-700 mb-1">{monthlyCompletionRate}%</div>
+                        <p className="text-gray-500 text-xs">完成率</p>
                       </div>
                     </div>
                   </div>

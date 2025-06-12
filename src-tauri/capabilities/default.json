@@ -10,6 +10,12 @@
     "opener:default",
     "fs:default",
     "sql:default",
-    "sql:allow-execute"
+    "sql:allow-execute",
+    "fs:allow-create",
+    "fs:read-all",
+    "fs:write-all",
+    "fs:allow-data-write-recursive",
+    "fs:allow-data-read-recursive",
+    "fs:create-app-specific-dirs"
   ]
 }

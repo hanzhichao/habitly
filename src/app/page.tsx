@@ -55,7 +55,6 @@ export default function HomePage() {
   const router = useRouter()
   const pathname = usePathname();
 
-
   useEffect(() => {
     void getWeeklyData().then(data => {
       console.log('weeklydata')
@@ -67,14 +66,15 @@ export default function HomePage() {
   useEffect(() => {
     setHabit(undefined)
     void getTodayHabits().then(habits => {
-      setHabits(habits)
-      console.log('habits')
-      console.log(habits)
+      if(habits.length === 0){
+        router.push('/add-habit')
+      } else {
+        setHabits(habits)
+      }
     })
   }, [pathname]);
 
-
-  const toggleHabit = (e: MouseEvent<HTMLButtonElement, MouseEvent>, id: number) => {
+  const toggleHabit = (e: React.MouseEvent<HTMLButtonElement>, id: number) => {
     e.stopPropagation()
     setHabits(habits.map((habit) => (habit.id === id ? {...habit, status: habit.status === 1 ? 0 : 1} : habit)))
     void toggleRecordStatusOfToday(id)
@@ -87,7 +87,7 @@ export default function HomePage() {
     router.push("/habit-detail")
   }
 
-  const totalDays = weeklyData.length; // 通常为7
+  const totalDays = 7; // 通常为7
   const completedDays = weeklyData.filter(d => d.completed).length;
   const percent = Math.round((completedDays / totalDays) * 100);
 
@@ -108,39 +108,41 @@ export default function HomePage() {
 
         {/* Weekly Progress */}
         <div className="mx-6 mb-6">
-          <Card className="border-white bg-white shadow-md rounded-2xl">
-            <CardContent className="px-6 cursor-pointer">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">每周进度</h2>
-                <span className="text-gray-500">{percent}%</span>
-              </div>
-              <div className="flex items-end justify-between gap-3 h-28">
-                {weeklyData.map((day, index) => (
-                  <motion.div
-                    key={`${day.day}-${day.progress}-${day.completed}`}
-                    initial={{height: 0}}
-                    animate={{height: `100%`}}
-                    transition={{delay: 0.2 + index * 0.1, duration: 0.6}}
-                    className="flex flex-col justify-end items-center gap-2 flex-1 bg-neutral-100 rounded-full"
-                  >
-                    <div
-                      className={`w-full rounded-full ${
-                        day.completed
-                          ? "bg-gradient-to-b from-blue-500 to-blue-400"
-                          : "bg-gradient-to-b from-blue-200 to-blue-300"
-                      } transition-colors duration-300`}
-                      style={{height: `${day.progress}%`}}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-              <div className="flex justify-between mt-2">
-                {["周一", "周二", "周三", "周四", "周五", "周六", "周日"].map((d, i) => (
-                  <span key={i} className="text-xs text-gray-500 font-medium flex-1 text-center">{d}</span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {habits.length > 0 && (
+            <Card className="border-white bg-white shadow-md rounded-2xl">
+              <CardContent className="px-6 cursor-pointer">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold text-gray-900">每周进度</h2>
+                  <span className="text-gray-500">{percent}%</span>
+                </div>
+                <div className="flex items-end justify-between gap-3 h-28">
+                  {weeklyData.map((day, index) => (
+                    <motion.div
+                      key={`${day.day}-${day.progress}-${day.completed}`}
+                      initial={{height: 0}}
+                      animate={{height: `100%`}}
+                      transition={{delay: 0.2 + index * 0.1, duration: 0.6}}
+                      className="flex flex-col justify-end items-center gap-2 flex-1 bg-neutral-100 rounded-full"
+                    >
+                      <div
+                        className={`w-full rounded-full ${
+                          day.completed
+                            ? "bg-gradient-to-b from-blue-500 to-blue-400"
+                            : "bg-gradient-to-b from-blue-200 to-blue-300"
+                        } transition-colors duration-300`}
+                        style={{height: `${day.progress}%`}}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2">
+                  {["周一", "周二", "周三", "周四", "周五", "周六", "周日"].map((d, i) => (
+                    <span key={i} className="text-xs text-gray-500 font-medium flex-1 text-center">{d}</span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Today's Habits */}

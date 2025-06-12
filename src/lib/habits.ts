@@ -1,16 +1,25 @@
 import Database from "@tauri-apps/plugin-sql";
 import {Habit, Record} from "@/lib/types";
 import * as path from "@tauri-apps/api/path";
-import {addDays, differenceInDays, format, parseISO, startOfWeek, isBefore, isAfter, isEqual} from 'date-fns';
+import {
+  addDays,
+  differenceInDays,
+  endOfMonth,
+  format,
+  isAfter,
+  isBefore,
+  isEqual,
+  startOfMonth,
+  startOfWeek
+} from 'date-fns';
+import {exists} from "@tauri-apps/plugin-fs";
 
 
-let tableCreated = false;
-
-async function getDb() {
-  const dbFile = await path.join(await path.homeDir(), "Habitly/db.sqlite")
+async function createTable() {
+  // const dbFile = await path.join(await path.homeDir(), "Habitly/db.sqlite")
+  const dbFile = await path.join(await path.appDataDir(), 'db.sqlite');
   const db = await Database.load("sqlite:" + dbFile);
-  if (!tableCreated) {
-    await db.execute(`CREATE TABLE IF NOT EXISTS "habits"
+  await db.execute(`CREATE TABLE IF NOT EXISTS "habits"
                       (
                           id          INTEGER PRIMARY KEY AUTOINCREMENT,
                           name        VARCHAR(64) NOT NULL,
@@ -38,9 +47,17 @@ async function getDb() {
                 FOREIGN KEY (habit_id) REFERENCES habits (id)
             );`
     )
-    tableCreated = true
+  await db.close()
+}
+
+async function getDb() {
+  // const dbFile = await path.join(await path.homeDir(), "Habitly/db.sqlite")
+  const dbFile = await path.join(await path.appDataDir(), 'db.sqlite');
+  const dbFileExists = await exists(dbFile);
+  if(!dbFileExists){
+    await createTable()
   }
-  return db;
+  return await Database.load("sqlite:" + dbFile);
 }
 
 // export async function getHabitsWithStatus(){
@@ -172,7 +189,7 @@ export async function getRecords(habitId: number) {
 // 查询习惯完成记录列表
 export async function getCompletedRecords(habitId: number) {
   const db = await getDb();
-  return db.select<Record[]>("SELECT * FROM `records` WHERE habit_id = $1 AND status = 1;", [habitId]);
+  return db.select<Record[]>("SELECT * FROM `records` WHERE habit_id = $1 AND status = 1 ORDER BY record_date;", [habitId]);
 }
 
 
@@ -214,19 +231,31 @@ export async function toggleRecordStatusOfToday(habitId: number) {
 // 统计习惯完成记录
 export async function getRecordStats(habitId: number) {
   const records = await getCompletedRecords(habitId)
-  if (records.length === 0) {
+  if (records.length === 0) return {completionRate: 0, currentStreak: 0, longestStreak: 0, monthlyCompletionRate: 0}
 
-  }
   const now = new Date();
+  const recordStart = new Date(records[0].record_date)
+  const totalDays = Math.abs(differenceInDays(now, recordStart))
+  const completionRate = Math.round(records.length / totalDays * 100)
+  const monthStart = startOfMonth(now)
+  const monthEnd = endOfMonth(now)
 
-  const date = format(new Date(), 'yyyy-MM-dd')
+  let monthlyRecordCount = 0
+  if ((isEqual(recordStart, monthStart) || isAfter(recordStart, monthStart) &&
+      (isEqual(recordStart, monthEnd) || isBefore(recordStart, monthEnd)))){
+    monthlyRecordCount ++
+  }
 
-  let currentStreak = 0;
-  let longestStreak = 0;
+  let currentStreak = 1;
+  let longestStreak = 1;
 
-  let lastRecordDate = parseISO(records[0].record_date)
+  let lastRecordDate = new Date(records[0].record_date)
   for (const record of records.slice(1)) {
-    const recordDate = parseISO(record.record_date)
+    const recordDate = new Date(record.record_date)
+    if ((isEqual(recordDate, monthStart) || isAfter(recordDate, monthStart) &&
+      (isEqual(recordDate, monthEnd) || isBefore(recordDate, monthEnd)))){
+      monthlyRecordCount ++
+    }
     const daysDiff = differenceInDays(recordDate, lastRecordDate);
     if (daysDiff === 1) {
       currentStreak++
@@ -236,6 +265,14 @@ export async function getRecordStats(habitId: number) {
     lastRecordDate = recordDate
     longestStreak = Math.max(longestStreak, currentStreak);
   }
+
+  const monthlyCompletionRate = Math.round(monthlyRecordCount / monthEnd.getDate() * 100)
+  console.log('completionRate', completionRate)
+  console.log('currentStreak', currentStreak)
+  console.log('longestStreak', longestStreak)
+  console.log('monthlyCompletionRate', monthlyCompletionRate)
+  return {completionRate: completionRate, currentStreak: currentStreak, longestStreak: longestStreak, monthlyCompletionRate: monthlyCompletionRate}
+
 }
 
 export async function getWeeklyData() {
@@ -247,10 +284,8 @@ export async function getWeeklyData() {
     if (i < now.getDay()) {
       const date = addDays(startOfWeekDate, i);
       const dateStr = format(date, 'yyyy-MM-dd')
-
       const habits = await getHabitsWithStatus(dateStr)
-
-
+      if (typeof habits === "undefined") continue
       const completeHabits = habits.filter(item => item.status == 1)
       const progress = habits.length !== 0 ? Math.round(completeHabits.length / habits.length * 100) : 0
       const completed = progress === 100

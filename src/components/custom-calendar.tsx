@@ -5,12 +5,13 @@ import {zhCN} from "date-fns/locale";
 
 interface CustomCalendarProps {
   selectedDate?: Date;
-  setSelectedDate: (value: Date) => void;
+  setSelectedDate: (value?: Date) => void;
   completedDates: Date[];
 }
 export const CustomCalendar = ({selectedDate,setSelectedDate,completedDates}:CustomCalendarProps) => {
   return (
     <Calendar
+      required={false}
       mode="single"
       locale={zhCN}
       buttonVariant="default"

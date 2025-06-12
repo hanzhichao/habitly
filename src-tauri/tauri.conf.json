@@ -5,7 +5,7 @@
   "identifier": "com.habitly.dev",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http:/0.0.0.0:3000",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../out"
   },
@@ -24,7 +24,11 @@
     }
   },
   "bundle": {
+    "iOS": {
+      "bundleVersion": "100"
+    },
     "active": true,
+    "category": "Utility",
     "targets": "all",
     "icon": [
       "icons/32x32.png",
