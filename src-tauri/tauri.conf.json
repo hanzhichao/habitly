@@ -5,7 +5,7 @@
   "identifier": "com.habitly.dev",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http:/0.0.0.0:3000",
+    "devUrl": "http:/localhost:3000",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../out"
   },

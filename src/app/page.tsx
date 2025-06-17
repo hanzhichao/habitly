@@ -29,20 +29,20 @@ function getIcons() {
   return icons
 }
 
-const colorMap = {
-  purple: "bg-purple-500",
-  yellow: "bg-yellow-500",
-  blue: "bg-blue-500",
-  green: "bg-green-500",
-  red: "bg-red-500",
-  zink: "bg-zink-500",
-  grey: "bg-grey-500",
-  slate: "bg-slate-500",
-  indigo: "bg-indigo-500",
-  cyan: "bg-cyan-500",
-  neutral: "bg-neutral-500",
-  // ...
-}
+// const colorMap = {
+//   purple: "bg-purple-500",
+//   yellow: "bg-yellow-500",
+//   blue: "bg-blue-500",
+//   green: "bg-green-500",
+//   red: "bg-red-500",
+//   zink: "bg-zink-500",
+//   grey: "bg-grey-500",
+//   slate: "bg-slate-500",
+//   indigo: "bg-indigo-500",
+//   cyan: "bg-cyan-500",
+//   neutral: "bg-neutral-500",
+//   // ...
+// }
 
 
 export default function HomePage() {
@@ -102,7 +102,7 @@ export default function HomePage() {
           </div>
           <Avatar className="w-12 h-12 shadow-md cursor-pointer">
             {/* <AvatarImage src="/placeholder.svg"/> */}
-            <AvatarFallback className="bg-blue-500 text-white">石</AvatarFallback>
+            <AvatarFallback className="bg-blue-500 text-white">U</AvatarFallback>
           </Avatar>
         </div>
 

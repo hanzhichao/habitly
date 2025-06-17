@@ -8,8 +8,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Edit3,
-  ChevronLeft,
-  ChevronRight,
   Book,
   BookOpen,
   Zap,
@@ -21,20 +19,15 @@ import {Habit} from "@/lib/types";
 import {CustomCalendar} from "@/components/custom-calendar";
 import {differenceInDays, endOfMonth, isAfter, isBefore, isEqual, startOfMonth} from "date-fns";
 
-function getColorMaps() {
-  const colorMap = new Map<string, string>();
-  colorMap.set("purple", "bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800")
-  colorMap.set("yellow", "bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-800")
-  colorMap.set("blue", "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800")
-  colorMap.set("green", "bg-gradient-to-br from-green-400 via-green-600 to-green-800")
-  colorMap.set("red", "bg-gradient-to-br from-red-400 via-red-600 to-red-800")
-  colorMap.set("cyan", "bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800")
-  return colorMap
+const colorMap: Record<string, string> = {
+  "purple": "bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800",
+  "yellow": "bg-gradient-to-br from-yellow-400 via-yellow-600 to-yellow-800",
+  "blue": "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800",
+  "green": "bg-gradient-to-br from-green-400 via-green-600 to-green-800",
+  "red": "bg-gradient-to-br from-red-400 via-red-600 to-red-800",
+  "cyan": "bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800",
+  "amber": "bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800",
 }
-
-
-const colorMap = getColorMaps()
-
 
 const iconOptions = [
   {icon: ArrowRight, color: "bg-blue-500", name: "arrow"},
@@ -51,20 +44,20 @@ const iconOptions = [
   {icon: Moon, color: "bg-amber-500", name: "moon"},
 ]
 
-const colorMap2 = {
-  purple: "text-purple-500",
-  yellow: "text-yellow-500",
-  blue: "text-blue-500",
-  green: "text-green-500",
-  red: "text-red-500",
-  zink: "text-zink-500",
-  grey: "text-grey-500",
-  slate: "text-slate-500",
-  indigo: "text-indigo-500",
-  cyan: "text-cyan-500",
-  neutral: "text-neutral-500",
-  // ...
-}
+// const colorMap2 = {
+//   purple: "text-purple-500",
+//   yellow: "text-yellow-500",
+//   blue: "text-blue-500",
+//   green: "text-green-500",
+//   red: "text-red-500",
+//   zink: "text-zink-500",
+//   grey: "text-grey-500",
+//   slate: "text-slate-500",
+//   indigo: "text-indigo-500",
+//   cyan: "text-cyan-500",
+//   neutral: "text-neutral-500",
+//   // ...
+// }
 
 
 export default function HabitDetailPage() {
@@ -183,7 +176,7 @@ export default function HabitDetailPage() {
   }
 
   const colorKey = habit?.color.split("-")[1] ?? "blue"
-  const bgColor = colorMap.get(colorKey) ?? ""
+  const bgColor = colorMap[colorKey] ?? ""
 
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
