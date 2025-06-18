@@ -8,40 +8,11 @@ import {Label} from "@/components/ui/label"
 import {Switch} from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {ChevronLeft, ArrowRight, Book, Zap, Droplets, Heart, Edit3, Camera, PenLine, Moon, Pencil, FileText, Image, BookOpen, PenTool} from "lucide-react"
+import {ChevronLeft} from "lucide-react"
 import {addHabit, deleteHabit, updateHabit} from "@/lib/habits";
 import {cn} from "@/lib/utils";
 import {useHabit} from "@/hooks/use-habit";
-
-const iconOptions = [
-  {icon: ArrowRight, color: "bg-blue-500", name: "arrow"},
-  {icon: Book, color: "bg-purple-500", name: "book"},
-  {icon: BookOpen, color: "bg-slate-500", name: "bookopen"},
-  {icon: Zap, color: "bg-yellow-500", name: "zap"},
-  {icon: Droplets, color: "bg-green-500", name: "droplets"},
-  {icon: Heart, color: "bg-red-500", name: "heart"},
-  {icon: Edit3, color: "bg-indigo-500", name: "edit"},
-  {icon: Camera, color: "bg-cyan-500", name: "camera"},
-  {icon: Image, color: "bg-sky-500", name: "image"},
-  {icon: PenLine, color: "bg-neutral-500", name: "penline"},
-  {icon: PenTool, color: "bg-stone-500", name: "pentool"},
-  {icon: Moon, color: "bg-amber-500", name: "moon"},
-]
-
-const daysOfWeek = [
-  {key: "1", label: "周一"},
-  {key: "2", label: "周二"},
-  {key: "3", label: "周三"},
-  {key: "4", label: "周四"},
-  {key: "5", label: "周五"},
-  {key: "6", label: "周六"},
-  {key: "7", label: "周日"},
-]
-
-
-// interface AddHabitPageProps {
-//   habit?: Habit
-// }
+import {iconOptions, daysOfWeek} from "@/lib/consts"
 
 
 export default function AddHabitPage() {

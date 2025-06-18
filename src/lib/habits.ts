@@ -198,9 +198,14 @@ export async function getWeeklyData() {
       const progress = habits.length !== 0 ? Math.round(completeHabits.length / habits.length * 100) : 0
       const completed = progress === 100
       data.push({day: days[i], progress: progress, completed: completed});
+      await info(`day: ${days[i]} progress: ${progress} completed: true`)
+
     } else {
       data.push({day: days[i], progress: 0, completed: false});
+      await info(`day: ${days[i]} progress: 0 completed: false`)
+
     }
+
   }
   return data
 }
