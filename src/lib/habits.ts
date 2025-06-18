@@ -1,6 +1,7 @@
 import Database from "@tauri-apps/plugin-sql";
 import {Habit, Record} from "@/lib/types";
 import * as path from "@tauri-apps/api/path";
+import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import {
   addDays,
   differenceInDays,
@@ -17,23 +18,24 @@ import {exists} from "@tauri-apps/plugin-fs";
 
 async function createTable() {
   // const dbFile = await path.join(await path.homeDir(), "Habitly/db.sqlite")
+  await info("创建表")
   const dbFile = await path.join(await path.appDataDir(), 'db.sqlite');
   const db = await Database.load("sqlite:" + dbFile);
   await db.execute(`CREATE TABLE IF NOT EXISTS "habits"
-                      (
-                          id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                          name        VARCHAR(64) NOT NULL,
-                          description VARCHAR(64) DEFAULT "",
-                          goal        VARCHAR(255),
-                          frequency   VARCHAR(64) DEFAULT "daily",
-                          reminder    VARCHAR(64),
-                          icon        VARCHAR(20) DEFAULT "arrow-right",
-                          color       VARCHAR(20) DEFAULT "bg-blue-500",
-                          start_date  DATE        NOT NULL,
-                          end_date    DATE,
-                          create_at   DATETIME    DEFAULT CURRENT_TIMESTAMP,
-                          update_at   DATETIME    DEFAULT CURRENT_TIMESTAMP
-                      );
+            (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                name        VARCHAR(64) NOT NULL,
+                description VARCHAR(64) DEFAULT "",
+                goal        VARCHAR(255),
+                frequency   VARCHAR(64) DEFAULT "daily",
+                reminder    VARCHAR(64),
+                icon        VARCHAR(20) DEFAULT "arrow-right",
+                color       VARCHAR(20) DEFAULT "bg-blue-500",
+                start_date  DATE        NOT NULL,
+                end_date    DATE,
+                create_at   DATETIME    DEFAULT CURRENT_TIMESTAMP,
+                update_at   DATETIME    DEFAULT CURRENT_TIMESTAMP
+            );
 
             CREATE TABLE IF NOT EXISTS "records"
             (
@@ -53,6 +55,7 @@ async function createTable() {
 async function getDb() {
   // const dbFile = await path.join(await path.homeDir(), "Habitly/db.sqlite")
   const dbFile = await path.join(await path.appDataDir(), 'db.sqlite');
+  await info(`dbFile: ${dbFile}`)
   const dbFileExists = await exists(dbFile);
   if(!dbFileExists){
     await createTable()
@@ -72,7 +75,7 @@ async function getDb() {
 
 export async function getHabitsWithStatusToday() {
   const db = await getDb();
-  const results = await db.select<Habit[]>(`SELECT id,
+  return  await db.select<Habit[]>(`SELECT id,
                                                    name,
                                                    goal,
                                                    frequency,
@@ -84,44 +87,22 @@ export async function getHabitsWithStatusToday() {
                                                    CASE WHEN records.status= 1 THEN 1 ELSE 0 END AS status
                                                    FROM habits
                                                    LEFT JOIN records ON habits.id = records.habit_id AND record_date = DATE('now');`);
-  // console.log(results)
-  return results
 }
 
 export async function getHabitsWithStatus(day: string) {
-  const db = await getDb();
-  const habits: Habit[] = []
-  const result = await db.select<Habit[]>(`
-      SELECT id,
-             name,
-             goal,
-             frequency,
-             reminder,
-             icon,
-             color,
-             start_date,
-             end_date,
-             CASE WHEN records.status = 1 THEN 1 ELSE 0 END AS status
-      FROM habits 
-          LEFT JOIN records ON habits.id = records.habit_id AND record_date = $1;`, [day])
+  await info(`getHabitsWithStatus: day=${day}`)
 
-  // 筛选 start_date <= day <= end_date范围内的
-  if (result.length > 0){
-    const now = new Date()
-    for (const item of result){
-      const startDate = new Date(item.start_date)
-      const endDate = item.end_date === null ? now : new Date(item.end_date)
-      const dayDate = new Date(day)
-      if (
-        (isEqual(dayDate, startDate) || isAfter(dayDate, startDate)) &&  (isEqual(dayDate, endDate) || isBefore(dayDate, endDate))
-      ){
-        habits.push(item)
-      }
-    }
-    console.log('getHabitsWithStatus')
-    console.log(habits)
-    return habits
-  }
+  const db = await getDb();
+  // const habits: Habit[] = []
+  const habits = await db.select<Habit[]>(`
+    SELECT id,name,goal,frequency,
+           reminder,icon,color,start_date,end_date,
+           CASE WHEN records.status = 1 THEN 1 ELSE 0 END AS status
+    FROM habits
+           LEFT JOIN records ON habits.id = records.habit_id AND record_date = $1
+    WHERE date("now") >= date(start_date);`, [day])
+  await info(habits.length.toString())
+  return habits
 }
 
 
@@ -176,6 +157,7 @@ export async function updateHabit(habbitId: number, name: string, goal: string, 
 }
 export async function deleteHabit(id: number) {
   const db = await getDb();
+  await db.execute("DELETE FROM `records` WHERE habit_id=$1", [id]);
   return await db.execute("DELETE FROM `habits` WHERE id=$1;", [id]);
 }
 
@@ -276,8 +258,10 @@ export async function getRecordStats(habitId: number) {
 }
 
 export async function getWeeklyData() {
+  await info("getWeeklyData")
   const days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
   const now = new Date();
+  await info(`now：${now.toString()}`)
   const startOfWeekDate = startOfWeek(now, {weekStartsOn: 1});
   const data: { day: string, progress: number, completed: boolean }[] = [];
   for (let i = 0; i < 7; i++) {

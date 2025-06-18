@@ -9,7 +9,7 @@ import {Switch} from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {ChevronLeft, ArrowRight, Book, Zap, Droplets, Heart, Edit3, Camera, PenLine, Moon, Pencil, FileText, Image, BookOpen, PenTool} from "lucide-react"
-import {addHabit, updateHabit} from "@/lib/habits";
+import {addHabit, deleteHabit, updateHabit} from "@/lib/habits";
 import {cn} from "@/lib/utils";
 import {useHabit} from "@/hooks/use-habit";
 
@@ -67,7 +67,9 @@ export default function AddHabitPage() {
       }
       setHabitName(habit.name)
       setSelectedIcon(iconIndex)
-      setFrequency(habit.frequency)
+      if (habit.frequency.startsWith("weekly")){
+        setFrequency('每周')
+      }
       setReminderTime(habit.reminder)
       setGoal(habit.goal)
     }
@@ -100,6 +102,14 @@ export default function AddHabitPage() {
     router.push("/")
   }
 
+  const onDeleteHabit = () => {
+    if (typeof habit === "undefined") return
+    // 保存到数据库
+    void deleteHabit(habit.id)
+    router.push("/")
+  }
+
+
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-md mx-auto bg-gradient-to-br from-indigo-100 to-indigo-50 min-h-screen rounded-3xl">
@@ -120,8 +130,8 @@ export default function AddHabitPage() {
           )}
         </div>
         <Card className="border-white bg-white shadow-md rounded-2xl mx-6">
-          <CardContent className="px-2">
-            <div className="px-5 space-y-6">
+          <CardContent>
+            <div className="space-y-6">
               {/* Habit Name */}
               <div>
                 <Label htmlFor="habit-name" className="text-base font-medium text-gray-700">
@@ -236,9 +246,14 @@ export default function AddHabitPage() {
                     创建习惯
                   </Button>
                 ):(
-                    <Button onClick={onUpdateHabit} className="w-full h-12 bg-blue-500 font-bold rounded-xl text-white" disabled={!habitName.trim()}>
+                    <div className="flex gap-x-2 items-center justify-between">
+                    <Button onClick={onUpdateHabit} className="w-[49%] h-12 bg-blue-500 font-bold rounded-xl text-white" disabled={!habitName.trim()}>
                       修改习惯
                     </Button>
+                    <Button onClick={onDeleteHabit} className="w-[49%] h-12 bg-red-500 font-bold rounded-xl text-white" disabled={!habitName.trim()}>
+                      删除习惯
+                    </Button>
+                    </div>
                   )
                 }
               </div>

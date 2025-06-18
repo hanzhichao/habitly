@@ -16,6 +16,7 @@
     "fs:write-all",
     "fs:allow-data-write-recursive",
     "fs:allow-data-read-recursive",
-    "fs:create-app-specific-dirs"
+    "fs:create-app-specific-dirs",
+    "log:default"
   ]
 }
